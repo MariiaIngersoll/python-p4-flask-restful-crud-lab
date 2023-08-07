@@ -4,6 +4,8 @@ from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 
+
+
 from models import db, Plant
 
 app = Flask(__name__)
@@ -46,6 +48,36 @@ class PlantByID(Resource):
     def get(self, id):
         plant = Plant.query.filter_by(id=id).first().to_dict()
         return make_response(jsonify(plant), 200)
+    
+    def patch(self,id):
+        record = Plant.query.filter(Plant.id == id).first()
+        plants = request.get_json()
+        for attr in plants:
+            setattr(record, attr, plants[attr])
+
+        db.session.add(record)
+        db.session.commit()
+
+        response_dict = record.to_dict()
+
+        response = make_response(
+            response_dict,
+            200,
+        )
+        return response
+    
+    def delete(self,id):
+        record = Plant.query.filter(Plant.id == id).first()
+        db.session.delete(record)
+        db.session.commit()
+
+        response_dict = ""
+        response = make_response(
+            response_dict,
+            204
+        )
+        return response
+
 
 
 api.add_resource(PlantByID, '/plants/<int:id>')
